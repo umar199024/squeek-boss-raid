@@ -514,7 +514,7 @@
       const net = await provider.getNetwork();
       if (Number(net.chainId) !== C.chainId) throw new Error("Wallet is not on Sepolia");
       const token = new window.ethers.Contract(S.active.token, ["function approve(address spender, uint256 value) returns (bool)"], signer);
-      const tx = await token.approve(C.sigil, ov.value);
+      const tx = await token.approve(C.sigil, ov.value, { gasLimit: 160000n });
       S.pending = { hash: tx.hash, at: nowS() };
       ts.innerHTML = `Sent · <a href="${C.explorer}/tx/${tx.hash}" target="_blank" rel="noopener">view on Etherscan ↗</a> · waiting for a block…`;
       pushLive({ kind: "sys", t: nowS(), text: "Your Raid Order is on its way", sub: `<a href="${C.explorer}/tx/${tx.hash}" target="_blank" rel="noopener">${short(tx.hash)} ↗</a>` });
@@ -527,9 +527,11 @@
     } catch (e) {
       S.pending = null;
       ts.className = "tx-status err";
-      const msg = (e && (e.shortMessage || e.reason || e.message)) || String(e);
+      const inner = e && (e.error || (e.info && e.info.error) || (e.info && e.info.payload && null));
+      const innerMsg = inner && (inner.message || (inner.data && inner.data.message)) || "";
+      const msg = ((e && (e.shortMessage || e.reason || e.message)) || String(e)) + (innerMsg ? " (" + innerMsg + ")" : "");
       ts.textContent = /rejected|denied|ACTION_REJECTED/i.test(msg) ? "You cancelled the transaction. Nothing was sent." :
-        /insufficient funds/i.test(msg) ? "Not enough Sepolia ETH for gas. Grab some from a Sepolia faucet and try again." : "Couldn't send: " + msg.slice(0, 160);
+        /insufficient funds|exceeds balance|gas required exceeds|could not coalesce/i.test(msg) ? "Your wallet couldn't send this on Sepolia, usually because it has no Sepolia test ETH for gas. Grab a little from a Sepolia faucet, check the wallet is on Sepolia, and try again." : "Couldn't send: " + msg.slice(0, 160);
       renderOrder(); renderParty();
     }
   }
