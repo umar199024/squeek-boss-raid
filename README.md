@@ -1,6 +1,6 @@
 # Squeek Boss Raid
 
-squeekchain-verify: PASTE REPOSITORY VERIFICATION LINE HERE
+squeekchain-project: 9ef4b5e3-8f38-4324-aeb1-4dda51c8b551
 
 ![Squeek Boss Raid](assets/cover.png)
 
