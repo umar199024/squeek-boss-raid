@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>cover</title>
+<!-- Renders assets/cover.png (1200x630). Open via a local server and screenshot the #cover element. -->
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  html, body { margin: 0; background: #24163a; }
+  #cover {
+    width: 1200px; height: 630px; position: relative; overflow: hidden; border: 0;
+    background:
+      radial-gradient(3px 3px at 8% 14%, #fff9 50%, transparent 51%),
+      radial-gradient(3px 3px at 64% 8%, #fff7 50%, transparent 51%),
+      radial-gradient(3px 3px at 92% 22%, #fff6 50%, transparent 51%),
+      radial-gradient(3px 3px at 36% 6%, #fff6 50%, transparent 51%),
+      repeating-linear-gradient(90deg, transparent 0 70px, #ffffff0e 70px 76px),
+      linear-gradient(180deg, #3a2357 0%, #4a2e6e 64%, #6b4a2d 64%, #5a3c24 100%);
+  }
+  .t1 { position: absolute; left: 56px; top: 44px; font: 92px/0.9 "Luckiest Guy", sans-serif; color: #fff4dc; text-shadow: 6px 6px 0 #2a1630; letter-spacing: 1px; }
+  .t1 b { color: #ffc93c; font-weight: normal; display: block; }
+  .t2 { position: absolute; left: 60px; top: 240px; width: 560px; font: 15px/1.75 "Press Start 2P", monospace; color: #fff4dc; text-shadow: 3px 3px 0 #2a1630; }
+  .t2 em { color: #ffc93c; font-style: normal; }
+  #wheel { position: absolute; left: 60px; bottom: 30px; width: 290px; height: 251px; }
+  #boss { position: absolute; right: 80px; bottom: 150px; width: 380px; height: 380px; }
+  .bossplate { position: absolute; right: 150px; bottom: 140px; background: #ffe1e6; border: 4px solid #2a1630; border-radius: 14px; box-shadow: 4px 4px 0 #2a1630; padding: 8px 18px 6px; text-align: center; }
+  .bossplate b { font: 28px/1 "Luckiest Guy", sans-serif; display: block; }
+  .bossplate span { font: 11px/1.8 "Press Start 2P", monospace; color: #7a6a7e; }
+  .vs { position: absolute; left: 560px; top: 300px; width: 92px; height: 92px; display: grid; place-items: center; background: #ff4d6d; border: 5px solid #2a1630; border-radius: 50%; box-shadow: 5px 5px 0 #2a1630; font: 44px/1 "Luckiest Guy"; color: #ffc93c; text-shadow: 3px 3px 0 #2a1630; transform: rotate(-8deg); }
+  .hp { position: absolute; left: 420px; right: 56px; bottom: 40px; }
+  .hp .bar { height: 40px; background: #1a0f24; border: 5px solid #2a1630; border-radius: 12px; overflow: hidden; position: relative; }
+  .hp .fill { position: absolute; inset: 0 44% 0 0; background: linear-gradient(180deg, #ff8197 0 30%, #ff4d6d 30% 70%, #c2183f 70%); }
+  .hp .ticks { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 3px), #0007 calc(10% - 3px) 10%); }
+  .hp .lab { display: flex; justify-content: space-between; font: 14px/1 "Press Start 2P", monospace; color: #fff4dc; margin-bottom: 10px; text-shadow: 2px 2px 0 #2a1630; }
+  .hp .lab b { font: 30px/0.7 "Luckiest Guy"; color: #ff4d6d; }
+  .chips { position: absolute; left: 60px; top: 360px; display: flex; gap: 8px; }
+  .chips span { width: 46px; height: 46px; display: grid; place-items: center; border: 4px solid #2a1630; border-radius: 10px; font: 16px/1 "Press Start 2P"; box-shadow: 3px 3px 0 #2a1630; }
+  .k1 { background: #e3defe; color: #6a5bd6; } .k2 { background: #ffe9b8; color: #c27d00; } .k3 { background: #ffd0d8; color: #c2183f; }
+</style>
+</head>
+<body>
+<div id="cover">
+  <div class="t1"><b>Squeek</b>Boss Raid</div>
+  <div class="t2">A weekly co-op raid where only a <em>real hamster</em> can land the hits.</div>
+    <canvas id="wheel" width="120" height="104"></canvas>
+  <div class="vs">VS</div>
+  <canvas id="boss" width="110" height="110"></canvas>
+  <div class="bossplate"><b>The Vacuum</b><span>DUST DEVOURER</span></div>
+  <div class="hp"><div class="lab"><b>HP</b><span>26,657 / 48,000</span></div><div class="bar"><div class="fill"></div><div class="ticks"></div></div></div>
+</div>
+<script src="../js/config.js"></script>
+<script src="../js/art.js"></script>
+<script>
+  document.fonts.ready.then(() => {
+    const boss = SBR_CONFIG.bosses[1];
+    SBR_ART.drawWheel(document.getElementById("wheel"), { t: 420, angle: 0.4, mode: "run", pouch: 0.6 });
+    SBR_ART.drawBoss(document.getElementById("boss"), boss, { t: 2600, mode: "idle", flash: 0, shake: 0 });
+    document.body.dataset.ready = "1";
+  });
+</script>
+</body>
+</html>

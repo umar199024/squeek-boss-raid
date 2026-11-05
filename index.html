@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Squeek Boss Raid · a weekly raid powered by Squeektoshi's real wheel</title>
+  <meta name="description" content="A weekly co-op boss raid on Squeekchain. The boss's HP falls only when Squeektoshi the hamster actually runs: damage is his certified wheel work from SqueekCore on Sepolia. Enlist with a class, plan your round calls, climb an on-chain leaderboard.">
+  <!-- squeekchain-verify: PASTE TAG HERE -->
+  <meta property="og:title" content="Squeek Boss Raid">
+  <meta property="og:description" content="Weekly boss raids powered by a real hamster's wheel. Enlist on Sepolia, call the rounds, take the boss down together.">
+  <meta property="og:image" content="assets/cover.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#24163a">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="demoRibbon" class="demo-ribbon" hidden>DEMO · simulated data · not Squeekchain</div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Squeek Boss Raid home">
+      <img src="assets/favicon.svg" alt="" width="40" height="40">
+      <span class="brand-text"><b>Squeek</b> Boss Raid</span>
+    </a>
+    <div class="pills" aria-live="polite">
+      <span class="pill" id="pillApi" title="Squeekchain public API (live wheel telemetry)"><i></i>API</span>
+      <span class="pill" id="pillChain" title="SqueekCore on Sepolia via public RPC"><i></i>Sepolia</span>
+      <span class="pill" id="pillLogs" title="Raid Orders read from SQK Approval logs"><i></i>Orders</span>
+    </div>
+    <button class="btn btn-wallet" id="walletBtn" type="button">Connect wallet</button>
+  </header>
+
+  <main>
+    <!-- ================= ARENA ================= -->
+    <section class="arena" aria-label="Raid arena">
+      <div class="arena-head">
+        <button class="wk-nav" id="wkPrev" type="button" aria-label="Previous week">◀</button>
+        <div class="wk-label"><span id="wkName">Week –</span><small id="wkDates">–</small></div>
+        <button class="wk-nav" id="wkNext" type="button" aria-label="Next week">▶</button>
+        <div class="wk-clock"><small id="wkClockLabel">Boss escapes in</small><b id="wkClock">–</b></div>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="fighter hamster">
+          <canvas id="wheelCv" width="120" height="104" aria-label="Squeektoshi on the WHEELY9000"></canvas>
+          <div class="plate">
+            <b>Squeektoshi</b>
+            <span id="wheelState" class="wheel-state">checking the wheel…</span>
+          </div>
+          <dl class="mini">
+            <div><dt>Wheel</dt><dd id="statRpm">–</dd></div>
+            <div><dt>Speed</dt><dd id="statSpeed">–</dd></div>
+            <div><dt>Today</dt><dd id="statDist">–</dd></div>
+          </dl>
+        </div>
+
+        <div class="vs" aria-hidden="true"><span>VS</span></div>
+
+        <div class="fighter boss">
+          <div class="taunt" id="bossTaunt">…</div>
+          <canvas id="bossCv" width="110" height="110" aria-label="This week's boss"></canvas>
+          <div class="plate boss-plate">
+            <b id="bossName">–</b>
+            <span id="bossTitle">–</span>
+          </div>
+        </div>
+        <div id="fx" class="fx" aria-hidden="true"></div>
+        <div id="banner" class="banner" hidden></div>
+      </div>
+
+      <div class="hp">
+        <div class="hp-top">
+          <span class="hp-label">HP</span>
+          <span class="hp-num"><b id="hpLeft">–</b> / <span id="hpMax">–</span></span>
+        </div>
+        <div class="hp-bar" role="progressbar" aria-label="Boss HP" id="hpBar" aria-valuemin="0">
+          <div class="hp-fill" id="hpFill"></div>
+          <div class="hp-ghost" id="hpGhost" title="Work the wheel has counted that SqueekCore has not settled yet"></div>
+          <div class="hp-ticks"></div>
+        </div>
+        <div class="hp-foot">
+          <span>Damage dealt <b id="dmgDone">–</b> wheel passes</span>
+          <span id="ghostNote" class="muted"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ROUNDS ================= -->
+    <section class="rounds card" aria-label="Ten-minute rounds">
+      <div class="card-h">
+        <h2>Rounds</h2>
+        <span class="muted" id="roundClock">–</span>
+      </div>
+      <div class="strip" id="strip"></div>
+      <div class="legend">
+        <span class="o o1">Z</span> Nap · 0
+        <span class="o o2">J</span> Jab · 1–399
+        <span class="o o3">S</span> Smash · 400+
+        <span class="o opend">…</span> settling
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="col">
+      <!-- ================= ENLIST + PLAN ================= -->
+      <section class="card join" id="joinCard" aria-label="Enlist and plan">
+        <div class="card-h"><h2><span class="step">1</span> Pick your class</h2><span class="muted" id="myStatus">not enlisted</span></div>
+        <div class="classes" id="classes" role="radiogroup" aria-label="Class"></div>
+
+        <div class="card-h sub"><h2><span class="step">2</span> Call the next rounds</h2><span class="muted" id="planWindow">–</span></div>
+        <p class="hint">Tap a round to cycle <b>–</b> → <b>Nap</b> → <b>Jab</b> → <b>Smash</b>. Only calls signed <em>before</em> a round starts can score.</p>
+        <div class="plan" id="plan"></div>
+        <div class="plan-tools">
+          <button class="btn btn-sm" type="button" data-fill="1">All Nap</button>
+          <button class="btn btn-sm" type="button" data-fill="2">All Jab</button>
+          <button class="btn btn-sm" type="button" data-fill="pattern">Night shift</button>
+          <button class="btn btn-sm btn-ghost" type="button" data-fill="0">Clear</button>
+        </div>
+
+        <div class="order">
+          <div class="order-code" title="The uint256 your Raid Order writes on-chain">
+            <small>Raid Order value</small>
+            <code id="orderCode">–</code>
+          </div>
+          <button class="btn btn-big" id="orderBtn" type="button">Connect wallet to enlist</button>
+          <p class="hint small" id="orderHint">Sends <code>SQK.approve(raid sigil, value)</code> on Sepolia from your wallet. The value is under 1 test SQK and the sigil is a keyless address, so nothing can ever be spent. You pay only Sepolia test gas.</p>
+          <p class="tx-status" id="txStatus" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- ================= ROSTER ================= -->
+      <section class="card roster" aria-label="Raid party">
+        <div class="card-h"><h2>Raid party</h2><span class="muted" id="rosterMeta"></span></div>
+        <div class="party" id="party"></div>
+      </section>
+
+      <!-- ================= RULES ================= -->
+      <section class="card rules" aria-label="How the raid works">
+        <div class="card-h"><h2>How the raid works</h2></div>
+        <ol class="rules-list">
+          <li><b>One boss a week.</b> It arrives Monday 00:00 UTC with a fixed HP and leaves the next Monday. Defeat it before then or it escapes.</li>
+          <li><b>Only the hamster hits.</b> Every wheel pass SqueekCore certifies on Sepolia is one point of damage. Nobody can buy, fake or speed up a hit, and his wheel time is never forced: naps are part of the game.</li>
+          <li><b>Raiders earn.</b> Enlisted raiders get <b>1 assist point per 10 passes</b> in every round after they joined.</li>
+          <li><b>Call the rounds.</b> Each 10-minute SqueekCore round is a <b>Nap</b> (0), <b>Jab</b> (1–399) or <b>Smash</b> (400+). Correct calls score 10 / 100 / 120, and each one in a row adds +10% (up to +100%).</li>
+          <li><b>Classes.</b> <span id="classRules"></span></li>
+          <li><b>Victory.</b> Everyone enlisted before the killing round gets <b>+500</b>. A correct call on the killing round earns <b>Last Hit +250</b>.</li>
+        </ol>
+      </section>
+      </div>
+      <div class="col">
+      <!-- ================= FEED ================= -->
+      <section class="card feed" aria-label="Hit feed">
+        <div class="card-h"><h2>Hit feed</h2><span class="muted" id="feedCount"></span></div>
+        <ol class="feed-list" id="feed"></ol>
+      </section>
+
+      <!-- ================= LEADERBOARD ================= -->
+      <section class="card board" aria-label="Leaderboard">
+        <div class="card-h"><h2>Leaderboard</h2><span class="muted" id="boardMeta"></span></div>
+        <div class="table-wrap">
+          <table class="lb">
+            <thead><tr><th>#</th><th>Raider</th><th>Points</th><th title="Correct calls / calls">Calls</th><th title="Best crit streak">Streak</th></tr></thead>
+            <tbody id="board"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="boardEmpty">No raiders yet this week. Be the first.</p>
+      </section>
+
+      <!-- ================= PROOF ================= -->
+      <section class="card proof" aria-label="Proof and data sources">
+        <div class="card-h"><h2>Proof &amp; data</h2></div>
+        <div id="proof" class="proof-body"></div>
+      </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <p>Community-built for Squeekchain Genesis. Not affiliated with Squeekchain. Sepolia testnet only: test SQK has no monetary value and this game never asks for keys or seed phrases.
+      Data: <a href="https://docs.squeekchain.com/developers/api/" target="_blank" rel="noopener">Squeekchain API</a> and SqueekCore on Sepolia.
+      <a href="https://sepolia.squeekchain.com/#stream-game" target="_blank" rel="noopener">Watch Squeektoshi live ↗</a></p>
+  </footer>
+
+  <script src="js/vendor/ethers.umd.min.js" integrity="sha384-6Zl0Pc8zjSz8KvmNeXRvUQgY4ryFb+BwDvKCmLYcBME0joAaru491tQgi9B7zsMM" crossorigin="anonymous"></script>
+  <script src="js/config.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/chain.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
